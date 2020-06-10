@@ -1,0 +1,4 @@
+# Ignore specific files/folders
+.Trash-1000/
+.vagrant/
+linux_x86_64/
