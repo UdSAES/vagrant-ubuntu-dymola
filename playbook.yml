@@ -1,0 +1,142 @@
+# Install Dymola 2021 on Ubuntu 18.04 LTS, starting from scratch at
+# https://app.vagrantup.com/hashicorp/boxes/bionic64 using VirtualBox
+
+---
+- hosts: all
+  vars:
+    vbox_version: "6.1.10"
+    vm_hostname: "ms-vm-ubuntu1804"
+    list_of_packages:
+      - { rpm: "dymola-2021.1-1.x86_64.rpm", deb: "dymola_2021.1-1_amd64.deb" }
+      - { rpm: "dymola-dassaultsystemes-2021.1-1.x86_64.rpm", deb: "dymola-dassaultsystemes_2021.1-1_amd64.deb" }
+      - { rpm: "dymola-electrifiedpowertrains-2021.1-1.x86_64.rpm", deb: "dymola-electrifiedpowertrains_2021.1-1_amd64.deb" }
+  tasks:
+    # https://docs.ansible.com/ansible/latest/modules/apt_module.html
+    - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      become: true
+
+    # https://wiki.ubuntuusers.de/GNOME_Installation
+    - name: Install GNOME core
+      apt:
+        name: gnome-core
+        state: present
+      become: true
+
+    # CAREFUL, this broke automatic resizing of the VM screen size until re-installing
+    # the VirtualBox Guest Additions (might work on first install, though)
+    - name: "Perform update using `apt-get dist-upgrade`"  # https://askubuntu.com/a/81594
+      apt:
+        upgrade: dist
+      become: true
+
+    - name: "Set hostname to {{ vm_hostname }}"
+      hostname:
+        name: "{{ vm_hostname }}"
+      become: true
+
+    # Install VirtualBox Guest Additions
+    - name: "Find installed kernel version via `uname -r`"
+      command:
+        cmd: "uname -r"
+      register: uname_r
+    - debug:
+        msg: "`uname -r`: {{ uname_r }}"
+    # https://superuser.com/a/419477
+    - name: Install dependencies of VirtualBox Guest Additions
+      apt:
+        name:
+          - dkms
+          - linux-headers-{{ uname_r.stdout }}
+        state: present
+      become: true
+    # - name: Reboot to ensure that kernel modules are reloaded
+    #     reboot:
+    # - name: Install VirtualBox Guest Additions
+    #   command:
+    #     chdir: "/media/vagrant/VBox_GAs_{{ vbox_version }}"
+    #     cmd: "./VBoxLinuxAdditions.run"
+    #   become: true
+
+    # Get rid of annoying default folders in $HOME created by GNOME
+    - name: Disable default folders
+      replace:
+        dest: "/home/{{ ansible_user }}/.config/user-dirs.dirs"
+        regexp: "^(XDG_.*)$"
+        replace: '# \1'
+    - name: Make disabling of default folders persistent
+      lineinfile:
+        dest: "/home/{{ ansible_user }}/.config/user-dirs.conf"
+        regexp: '^enabled='
+        line: "enabled=false"
+        create: yes
+        state: present
+    - name: Remove folders created during installation
+      file:
+        path: "/home/{{ ansible_user }}/{{ item }}"
+        state: absent
+      loop:
+        - "Desktop"
+        - "Documents"
+        - "Downloads"
+        - "Music"
+        - "Pictures"
+        - "Public"
+        - "Templates"
+        - "Videos"
+
+    # Install Dymola 2021 ################################################################
+    # Find missing packages at https://packages.ubuntu.com/ (limit search to "bionic")
+    - name: Install dependencies of Dymola 2021
+      apt:
+        name:
+          - alien  # for converting .rpm-packages to .deb-packages
+          - zip  # for FMU export (according to Dymola manual)
+          - unzip  # for FMU export (according to Dymola manual)
+          - g++-multilib  # for 32-bit compilation (according to Dymola manual)
+          - libc6-dev-i386  # for 32-bit compilation (according to Dymola manual)
+          # failure during conversion to .deb: `libQt5Gui.so.5 needed`
+          # --> install `libqt5gui5`
+          - libqt5gui5
+          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries: libGLU.so.1: cannot open shared object file: No such file or directory
+          # --> install `libglu1-mesa`
+          - libglu1-mesa
+          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries: libsnappy.so.1: cannot open shared object file: No such file or directory
+          # --> install `libsnappy1v5`
+          - libsnappy1v5
+        state: present
+      become: true
+
+    - name: Convert .rpm-packages to .deb-packages
+      command:
+        chdir: "/vagrant/linux_x86_64/"  # directory containing .rpm-packages
+        cmd: "alien --scripts --keep-version ./{{ item.rpm }}"
+        creates: "./{{ item.deb }}"
+      loop: "{{ list_of_packages|flatten(levels=1) }}"
+
+    - name: Install Dymola and libraries
+      apt:
+        deb: "/vagrant/linux_x86_64/{{ item.deb }}"  # directory containing .deb-packages
+        state: present
+      loop: "{{ list_of_packages|flatten(levels=1) }}"
+      become: true
+
+    - name: Apply patch
+      copy:
+        src: ./libevent-2.0.so.5  # path to library on host-OS
+        dest: /opt/dymola-2021-x86_64/bin/lib64/libevent-2.0.so.5
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0777'  # I know, that's probably excessive... no idea what's required
+
+    # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
+    # Bonus: Make Dymola 2021 accessible from the Applications-menu in GNOME
+    - name: Install .desktop-file for Dymola
+      copy:
+        src: ./desktopfile.txt
+        dest: "/home/{{ ansible_user }}/.local/share/applications/dymola.desktop"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0775'
