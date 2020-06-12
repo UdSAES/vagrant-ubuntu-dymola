@@ -48,6 +48,9 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--vram", "128"]
     vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
     vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    # https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm-networking
+    # --> to share VPN connection of the host; see https://askubuntu.com/a/796468
+    vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
 
     # TODO provision/mount VirtualBox Guest Additions-"CD" automatically?
   end
