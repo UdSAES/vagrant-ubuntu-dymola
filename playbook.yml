@@ -10,6 +10,16 @@
       - { rpm: "dymola-2021.1-1.x86_64.rpm", deb: "dymola_2021.1-1_amd64.deb" }
       - { rpm: "dymola-dassaultsystemes-2021.1-1.x86_64.rpm", deb: "dymola-dassaultsystemes_2021.1-1_amd64.deb" }
       - { rpm: "dymola-electrifiedpowertrains-2021.1-1.x86_64.rpm", deb: "dymola-electrifiedpowertrains_2021.1-1_amd64.deb" }
+  handlers:
+    - name: restart network manager
+      service:
+        name: network-manager
+        state: restarted
+      become: true
+    - name: netplan apply
+      command:
+        cmd: "netplan apply"
+      become: true
   tasks:
     # https://docs.ansible.com/ansible/latest/modules/apt_module.html
     - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
@@ -86,6 +96,26 @@
         - "Public"
         - "Templates"
         - "Videos"
+
+    # https://askubuntu.com/a/1043244
+    - name: Enable wired network connection, part 1
+      lineinfile:
+        dest: "/etc/NetworkManager/NetworkManager.conf"
+        regexp: '^managed='
+        line: "managed=true"
+        state: present
+      become: true
+      notify: restart network manager
+
+    # https://askubuntu.com/a/1178044
+    - name: Enable wired network connection, part 2
+      lineinfile:
+        dest: "/etc/netplan/01-netcfg.yaml"
+        regexp: '^\s\srenderer:'
+        line: "  renderer: NetworkManager"
+        state: present
+      become: true
+      notify: netplan apply
 
     # Install Dymola 2021 ################################################################
     # Find missing packages at https://packages.ubuntu.com/ (limit search to "bionic")
