@@ -2,10 +2,11 @@
 # https://app.vagrantup.com/hashicorp/boxes/bionic64 using VirtualBox
 
 ---
-- hosts: all
+- hosts: all  # 'all' works with Vagrant but not in general
   vars:
     vbox_version: "6.1.10"
     vm_hostname: "ms-vm-ubuntu1804"
+    # List of packages/libraries to be installed as .rpm-file/as .deb-file
     list_of_packages:
       - { rpm: "dymola-2021.1-1.x86_64.rpm", deb: "dymola_2021.1-1_amd64.deb" }
       - { rpm: "dymola-dassaultsystemes-2021.1-1.x86_64.rpm", deb: "dymola-dassaultsystemes_2021.1-1_amd64.deb" }
@@ -130,10 +131,12 @@
           # failure during conversion to .deb: `libQt5Gui.so.5 needed`
           # --> install `libqt5gui5`
           - libqt5gui5
-          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries: libGLU.so.1: cannot open shared object file: No such file or directory
+          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries:
+          # libGLU.so.1: cannot open shared object file: No such file or directory
           # --> install `libglu1-mesa`
           - libglu1-mesa
-          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries: libsnappy.so.1: cannot open shared object file: No such file or directory
+          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries:
+          # libsnappy.so.1: cannot open shared object file: No such file or directory
           # --> install `libsnappy1v5`
           - libsnappy1v5
         state: present
@@ -159,7 +162,7 @@
         dest: /opt/dymola-2021-x86_64/bin/lib64/libevent-2.0.so.5
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        mode: '0777'  # I know, that's probably excessive... no idea what's required
+        mode: '0777'  # '0777' is probably excessive.. no idea what's required, though
 
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
     # Bonus: Make Dymola 2021 accessible from the Applications-menu in GNOME
