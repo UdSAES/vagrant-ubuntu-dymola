@@ -25,6 +25,7 @@ Vagrant.configure("2") do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "/home/moritz/virtual_machines/ubuntu1804_dymola2021/WorkingDirectory", "/home/vagrant/WorkingDirectory"
   config.vm.synced_folder "/home/moritz/work/vorlesungen/component_based_systems/CbS", "/home/vagrant/CbS"
   config.vm.synced_folder "/home/moritz/work/projekte/designetz/usecases/pv_prognose/pv-systems", "/home/vagrant/PVSystems"
 
