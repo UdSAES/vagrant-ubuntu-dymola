@@ -1,0 +1,12 @@
+= README
+
+Vagrantfile and playbook for installation of Dymola on Ubuntu from scratch using Vagrant
+
+== Installation
+...
+
+== Usage
+...
+
+== License
+...
