@@ -5,11 +5,26 @@
 - hosts: all  # 'all' works with Vagrant but not in general
   vars:
     vm_hostname: "ms-vm-ubuntu1804"
+    version:
+      name: Dymola 2021x  # application name (SHOULD include version string)
+      number: 2021.2-1  # version number as used in filename of .rpm-packages
+    install_dir: /opt/dymola-2021x-x86_64  # directory in which Dymola is installed
+
     # List of packages/libraries to be installed as .rpm-file/as .deb-file
     list_of_packages:
-      - { rpm: "dymola-2021.1-1.x86_64.rpm", deb: "dymola_2021.1-1_amd64.deb" }
-      - { rpm: "dymola-dassaultsystemes-2021.1-1.x86_64.rpm", deb: "dymola-dassaultsystemes_2021.1-1_amd64.deb" }
-      - { rpm: "dymola-electrifiedpowertrains-2021.1-1.x86_64.rpm", deb: "dymola-electrifiedpowertrains_2021.1-1_amd64.deb" }
+      - {
+          rpm: "dymola-{{ version.number }}.x86_64.rpm",
+          deb: "dymola_{{ version.number }}_amd64.deb"
+        }
+      - {
+          rpm: "dymola-dassaultsystemes-{{ version.number }}.x86_64.rpm",
+          deb: "dymola-dassaultsystemes_{{ version.number }}_amd64.deb"
+        }
+      - {
+          rpm: "dymola-electrifiedpowertrains-{{ version.number }}.x86_64.rpm",
+          deb: "dymola-electrifiedpowertrains_{{ version.number }}_amd64.deb"
+        }
+
     # Disable GNOME default folders in $HOME (`true`) or let them be (`false`)
     disable_gnome_default_folders: true
   handlers:
@@ -144,7 +159,7 @@
     - name: Apply patch
       copy:
         src: ./libevent-2.0.so.5  # path to library on host-OS
-        dest: /opt/dymola-2021-x86_64/bin/lib64/libevent-2.0.so.5
+        dest: "{{ install_dir }}/bin/lib64/libevent-2.0.so.5"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0777'  # '0777' is probably excessive.. no idea what's required, though
