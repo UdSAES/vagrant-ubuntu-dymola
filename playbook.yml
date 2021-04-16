@@ -128,19 +128,69 @@
           - unzip  # for FMU export (according to Dymola manual)
           - g++-multilib  # for 32-bit compilation (according to Dymola manual)
           - libc6-dev-i386  # for 32-bit compilation (according to Dymola manual)
-          # failure during conversion to .deb: `libQt5Gui.so.5 needed`
-          # --> install `libqt5gui5`
-          - libqt5gui5
-          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries:
+
+          # "Since Qt 5.15 no longer supports embedding of the XCB libraries,
+          # these must now be present on the platform running Dymola. See the
+          # table in https://doc.qt.io/qt-5.15/linux-requirements.html for the list
+          # of versions of the ones starting with “libxcb”. Note that the
+          # development packages (“-dev”) mentioned outside the table are not
+          # needed." (Dymola manual, section "Installation on Linux")
+          - xcb
+          - libxcb-render0
+          - libxcb-render-util0
+          - libxcb-shape0
+          - libxcb-randr0
+          - libxcb-xfixes0
+          - libxcb-sync1
+          - libxcb-shm0
+          - libxcb-icccm4
+          - libxcb-keysyms1
+          - libxcb-image0
+
+          # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
           # libGLU.so.1: cannot open shared object file: No such file or directory
-          # --> install `libglu1-mesa`
           - libglu1-mesa
-          # /opt/dymola-2021-x86_64/bin64/dymola: error while loading shared libraries:
+
+          # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
           # libsnappy.so.1: cannot open shared object file: No such file or directory
-          # --> install `libsnappy1v5`
           - libsnappy1v5
+
+          # Additional missing dependencies
+          # -- theoretically provided in `{{ install_dir }}/bin/lib64`, but not found
+          - libqt5gui5
+          - libqt5printsupport5
+          - libqt5webengine5
+          - libqt5webenginewidgets5
+          - libqt5x11extras5
+          - libqt5xml5
         state: present
       become: true
+
+    - name: Install dependencies of Dymola, 2/2
+      apt:
+        deb: "{{ item }}"
+        state: present
+      loop:
+        # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
+        # libicui18n.so.52.1: cannot open shared object file: No such file or directory
+        - https://launchpad.net/ubuntu/+archive/primary/+files/libicu52_52.1-3_amd64.deb
+      become: true
+
+
+    - name: Link libraries still not found
+      ansible.builtin.file:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        state: link
+      loop:
+        - {
+            src: "{{ install_dir }}/bin/lib64/libQtitanBase.so.1",
+            dest: "/usr/lib/libQtitanBase.so.1"
+          }
+        - {
+            src: "{{ install_dir }}/bin/lib64/libQtitanRibbon.so.5",
+            dest: "/usr/lib/libQtitanRibbon.so.5"
+          }
 
     - name: Convert .rpm-packages to .deb-packages
       command:
@@ -148,6 +198,7 @@
         cmd: "alien --scripts --keep-version ./{{ item.rpm }}"
         creates: "./{{ item.deb }}"
       loop: "{{ list_of_packages|flatten(levels=1) }}"
+      become: true
 
     - name: Install Dymola and libraries
       apt:
