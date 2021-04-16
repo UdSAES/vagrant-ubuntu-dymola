@@ -1,4 +1,4 @@
-# Install Dymola 2021 on Ubuntu 18.04 LTS, starting from scratch at
+# Install Dymola on Ubuntu 18.04 LTS, starting from scratch at
 # https://app.vagrantup.com/hashicorp/boxes/bionic64 using VirtualBox
 
 ---
@@ -101,9 +101,11 @@
       become: true
       notify: netplan apply
 
-    # Install Dymola 2021 ################################################################
-    # Find missing packages at https://packages.ubuntu.com/ (limit search to "bionic")
-    - name: Install dependencies of Dymola 2021
+    # Install Dymola ###################################################################
+    # -- list all dependencies: `ldd /full/path/to/executable`
+    # -- identify specific problem: `QT_DEBUG_PLUGINS=1 /full/path/to/executable`
+    # -- find missing packages: https://packages.ubuntu.com/ (limit search to "bionic")
+    - name: Install dependencies of Dymola, 1/2
       apt:
         name:
           - alien  # for converting .rpm-packages to .deb-packages
@@ -148,7 +150,7 @@
         mode: '0777'  # '0777' is probably excessive.. no idea what's required, though
 
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
-    # Bonus: Make Dymola 2021 accessible from the Applications-menu in GNOME
+    # Bonus: Make Dymola accessible from the Applications-menu in GNOME
     - name: Install .desktop-file for Dymola
       copy:
         src: ./desktopfile.txt
