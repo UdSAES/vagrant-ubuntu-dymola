@@ -167,9 +167,12 @@
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
     # Bonus: Make Dymola accessible from the Applications-menu in GNOME
     - name: Install .desktop-file for Dymola
-      copy:
-        src: ./desktopfile.txt
+      template:
+        src: ./desktopfile.txt.j2
         dest: "/home/{{ ansible_user }}/.local/share/applications/dymola.desktop"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0775'
+      vars:
+        application_name: "{{ version.name }}"
+        install_directory: "{{ install_dir }}"
