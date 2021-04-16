@@ -175,6 +175,10 @@
         state: present
       become: true
       loop:
+        # The libraries [...] `libevent-2.0.so.5` might require
+        # explicit installation. (Dymola manual, section "Installation on Linux")
+        # -> https://launchpad.net/ubuntu/+source/libevent
+        - https://launchpad.net/ubuntu/+archive/primary/+files/libevent-2.0-5_2.0.16-stable-1_amd64.deb
         # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
         # libicui18n.so.52.1: cannot open shared object file: No such file or directory
         # -> https://launchpad.net/ubuntu/+source/icu
@@ -214,14 +218,6 @@
         state: present
       loop: "{{ list_of_packages|flatten(levels=1) }}"
       become: true
-
-    - name: Apply patch
-      copy:
-        src: ./libevent-2.0.so.5  # path to library on host-OS
-        dest: "{{ install_dir }}/bin/lib64/libevent-2.0.so.5"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0777'  # '0777' is probably excessive.. no idea what's required, though
 
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
     # Bonus: Make Dymola accessible from the Applications-menu in GNOME
