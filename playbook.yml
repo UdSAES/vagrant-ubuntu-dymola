@@ -146,6 +146,9 @@
           - libxcb-icccm4
           - libxcb-keysyms1
           - libxcb-image0
+          # The libraries `libxcb-xinput.so.0` [...] might require
+          # explicit installation. (Dymola manual, section "Installation on Linux")
+          - libxcb-xinput0
 
           # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
           # libGLU.so.1: cannot open shared object file: No such file or directory
@@ -170,23 +173,28 @@
       apt:
         deb: "{{ item }}"
         state: present
+      become: true
       loop:
         # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
         # libicui18n.so.52.1: cannot open shared object file: No such file or directory
+        # -> https://launchpad.net/ubuntu/+source/icu
         - https://launchpad.net/ubuntu/+archive/primary/+files/libicu52_52.1-3_amd64.deb
-      become: true
-
 
     - name: Link libraries still not found
       ansible.builtin.file:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         state: link
+      become: true
       loop:
+        # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
+        # libQtitanBase.so.1: cannot open shared object file: No such file or directory
         - {
             src: "{{ install_dir }}/bin/lib64/libQtitanBase.so.1",
             dest: "/usr/lib/libQtitanBase.so.1"
           }
+        # /opt/dymola-2021x-x86_64/bin64/dymola: error while loading shared libraries:
+        # libQtitanRibbon.so.5: cannot open shared object file: No such file or directory
         - {
             src: "{{ install_dir }}/bin/lib64/libQtitanRibbon.so.5",
             dest: "/usr/lib/libQtitanRibbon.so.5"
