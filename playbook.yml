@@ -10,6 +10,8 @@
       - { rpm: "dymola-2021.1-1.x86_64.rpm", deb: "dymola_2021.1-1_amd64.deb" }
       - { rpm: "dymola-dassaultsystemes-2021.1-1.x86_64.rpm", deb: "dymola-dassaultsystemes_2021.1-1_amd64.deb" }
       - { rpm: "dymola-electrifiedpowertrains-2021.1-1.x86_64.rpm", deb: "dymola-electrifiedpowertrains_2021.1-1_amd64.deb" }
+    # Disable GNOME default folders in $HOME (`true`) or let them be (`false`)
+    disable_gnome_default_folders: true
   handlers:
     - name: restart network manager
       service:
@@ -55,6 +57,7 @@
         dest: "/home/{{ ansible_user }}/.config/user-dirs.dirs"
         regexp: "^(XDG_.*)$"
         replace: '# \1'
+      when: disable_gnome_default_folders
     - name: Make disabling of default folders persistent
       lineinfile:
         dest: "/home/{{ ansible_user }}/.config/user-dirs.conf"
@@ -62,6 +65,7 @@
         line: "enabled=false"
         create: yes
         state: present
+      when: disable_gnome_default_folders
     - name: Remove folders created during installation
       file:
         path: "/home/{{ ansible_user }}/{{ item }}"
@@ -75,6 +79,7 @@
         - "Public"
         - "Templates"
         - "Videos"
+      when: disable_gnome_default_folders
 
     # https://askubuntu.com/a/1043244
     - name: Enable wired network connection, part 1
