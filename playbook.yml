@@ -119,6 +119,7 @@
     # Install Dymola ###################################################################
     # -- list all dependencies: `ldd /full/path/to/executable`
     # -- identify specific problem: `QT_DEBUG_PLUGINS=1 /full/path/to/executable`
+    # -- NOTE: running `dymola` might work even if the above raisies problems!
     # -- find missing packages: https://packages.ubuntu.com/ (limit search to "bionic")
     - name: Install dependencies of Dymola, 1/2
       apt:
@@ -135,6 +136,10 @@
           # of versions of the ones starting with “libxcb”. Note that the
           # development packages (“-dev”) mentioned outside the table are not
           # needed." (Dymola manual, section "Installation on Linux")
+          # NOTE: If something is wrong, the error message you will get is typically
+          # "Fatal: This application failed to start because no Qt platform plugin could
+          # be initialized. Reinstalling the application may fix this problem. Available
+          # platform plugins are: xcb. Aborted (core dumped)"
           - xcb
           - libxcb-render0
           - libxcb-render-util0
