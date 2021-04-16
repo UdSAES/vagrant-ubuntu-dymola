@@ -4,7 +4,6 @@
 ---
 - hosts: all  # 'all' works with Vagrant but not in general
   vars:
-    vbox_version: "6.1.10"
     vm_hostname: "ms-vm-ubuntu1804"
     # List of packages/libraries to be installed as .rpm-file/as .deb-file
     list_of_packages:
@@ -48,27 +47,6 @@
         name: "{{ vm_hostname }}"
       become: true
 
-    # Install VirtualBox Guest Additions
-    - name: "Find installed kernel version via `uname -r`"
-      command:
-        cmd: "uname -r"
-      register: uname_r
-    - debug:
-        msg: "`uname -r`: {{ uname_r }}"
-    # https://superuser.com/a/419477
-    - name: Install dependencies of VirtualBox Guest Additions
-      apt:
-        name:
-          - dkms
-          - linux-headers-{{ uname_r.stdout }}
-        state: present
-      become: true
-    # - name: Reboot to ensure that kernel modules are reloaded
-    #     reboot:
-    # - name: Install VirtualBox Guest Additions
-    #   command:
-    #     chdir: "/media/vagrant/VBox_GAs_{{ vbox_version }}"
-    #     cmd: "./VBoxLinuxAdditions.run"
     #   become: true
 
     # Get rid of annoying default folders in $HOME created by GNOME
