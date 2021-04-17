@@ -40,4 +40,4 @@ Configuration is not required, but possible. By default, a VM with 2 CPUs and 20
 * For all other settings, edit the `vars`-section at the top of `playbook.yaml`.
 
 == License
-...
+The contents of this repository are placed in the public domain using the https://spdx.org/licenses/Unlicense.html[Unlicense] (software) and the https://spdx.org/licenses/CC0-1.0.html[CC0-1.0]-license (documentation), as indicated by the https://spdx.dev/ids/[SPDX short-form identifiers] at the top of each file. Find the license texts in link:./LICENSES[./LICENSES].
