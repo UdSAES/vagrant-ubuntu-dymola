@@ -4,7 +4,15 @@
 ---
 - hosts: all  # 'all' works with Vagrant but not in general
   vars:
-    vm_hostname: "ms-vm-ubuntu1804"
+    vm_hostname: "ubuntu1804_dymola2021x"
+
+    # Install support for exactly one language other than English
+    additional_language: de # locale code
+
+    # Disable GNOME default folders in $HOME (`true`) or let them be (`false`)
+    disable_gnome_default_folders: true
+
+    # Specify options for installation of Dymola
     version:
       name: Dymola 2021x  # application name (SHOULD include version string)
       number: 2021.2-1  # version number as used in filename of .rpm-packages
@@ -20,13 +28,8 @@
           rpm: "dymola-dassaultsystemes-{{ version.number }}.x86_64.rpm",
           deb: "dymola-dassaultsystemes_{{ version.number }}_amd64.deb"
         }
-      - {
-          rpm: "dymola-electrifiedpowertrains-{{ version.number }}.x86_64.rpm",
-          deb: "dymola-electrifiedpowertrains_{{ version.number }}_amd64.deb"
-        }
+      # If desired, add additional libraries below, following the example set above
 
-    # Disable GNOME default folders in $HOME (`true`) or let them be (`false`)
-    disable_gnome_default_folders: true
   handlers:
     - name: restart network manager
       service:
@@ -37,12 +40,19 @@
       command:
         cmd: "netplan apply"
       become: true
+
   tasks:
-    # https://docs.ansible.com/ansible/latest/modules/apt_module.html
+    # Update package cache
     - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
       apt:
         update_cache: yes
         cache_valid_time: 3600
+      become: true
+
+    # Upgrade all packages
+    - name: "Perform update using `apt-get dist-upgrade`"  # https://askubuntu.com/a/81594
+      apt:
+        upgrade: dist
       become: true
 
     # https://wiki.ubuntuusers.de/GNOME_Installation
@@ -52,51 +62,13 @@
         state: present
       become: true
 
-    # CAREFUL, this broke automatic resizing of the VM screen size until re-installing
-    # the VirtualBox Guest Additions (might work on first install, though)
-    - name: "Perform update using `apt-get dist-upgrade`"  # https://askubuntu.com/a/81594
-      apt:
-        upgrade: dist
-      become: true
-
+    # Set the hostname
     - name: "Set hostname to {{ vm_hostname }}"
       hostname:
         name: "{{ vm_hostname }}"
       become: true
 
-    #   become: true
-
-    # Get rid of annoying default folders in $HOME created by GNOME
-    - name: Disable default folders
-      replace:
-        dest: "/home/{{ ansible_user }}/.config/user-dirs.dirs"
-        regexp: "^(XDG_.*)$"
-        replace: '# \1'
-      when: disable_gnome_default_folders
-    - name: Make disabling of default folders persistent
-      lineinfile:
-        dest: "/home/{{ ansible_user }}/.config/user-dirs.conf"
-        regexp: '^enabled='
-        line: "enabled=false"
-        create: yes
-        state: present
-      when: disable_gnome_default_folders
-    - name: Remove folders created during installation
-      file:
-        path: "/home/{{ ansible_user }}/{{ item }}"
-        state: absent
-      loop:
-        - "Desktop"
-        - "Documents"
-        - "Downloads"
-        - "Music"
-        - "Pictures"
-        - "Public"
-        - "Templates"
-        - "Videos"
-      when: disable_gnome_default_folders
-
-    # https://askubuntu.com/a/1043244
+    # Enable wired network connection, part 1 (https://askubuntu.com/a/1043244)
     - name: Enable wired network connection, part 1
       lineinfile:
         dest: "/etc/NetworkManager/NetworkManager.conf"
@@ -106,7 +78,7 @@
       become: true
       notify: restart network manager
 
-    # https://askubuntu.com/a/1178044
+    # Enable wired network connection, part 2 (https://askubuntu.com/a/1178044)
     - name: Enable wired network connection, part 2
       lineinfile:
         dest: "/etc/netplan/01-netcfg.yaml"
@@ -116,10 +88,42 @@
       become: true
       notify: netplan apply
 
+    # Get rid of annoying default folders in $HOME created by GNOME
+    # CAREFUL, only becomes possible after someone logged into the GUI!
+    - name: Disable default folders
+      block:
+      - name: Disable default folders
+        replace:
+          dest: "/home/{{ ansible_user }}/.config/user-dirs.dirs"
+          regexp: "^(XDG_.*)$"
+          replace: '# \1'
+      - name: Make disabling of default folders persistent
+        lineinfile:
+          dest: "/home/{{ ansible_user }}/.config/user-dirs.conf"
+          regexp: '^enabled='
+          line: "enabled=false"
+          create: yes
+          state: present
+      - name: Remove folders created during installation
+        file:
+          path: "/home/{{ ansible_user }}/{{ item }}"
+          state: absent
+        loop:
+          - "Desktop"
+          - "Documents"
+          - "Downloads"
+          - "Music"
+          - "Pictures"
+          - "Public"
+          - "Templates"
+          - "Videos"
+      when:
+        - disable_gnome_default_folders
+
     # Install Dymola ###################################################################
     # -- list all dependencies: `ldd /full/path/to/executable`
     # -- identify specific problem: `QT_DEBUG_PLUGINS=1 /full/path/to/executable`
-    # -- NOTE: running `dymola` might work even if the above raisies problems!
+    # -- NOTE: running `dymola` might work even if the above raises problems!
     # -- find missing packages: https://packages.ubuntu.com/ (limit search to "bionic")
     - name: Install dependencies of Dymola, 1/2
       apt:
@@ -189,6 +193,21 @@
         # -> https://launchpad.net/ubuntu/+source/icu
         - https://launchpad.net/ubuntu/+archive/primary/+files/libicu52_52.1-3_amd64.deb
 
+    - name: Convert .rpm-packages to .deb-packages
+      command:
+        chdir: "/vagrant/linux_x86_64/"  # directory containing .rpm-packages
+        cmd: "alien --scripts --keep-version ./{{ item.rpm }}"
+        creates: "./{{ item.deb }}"
+      loop: "{{ list_of_packages|flatten(levels=1) }}"
+      become: true
+
+    - name: Install Dymola and libraries
+      apt:
+        deb: "/vagrant/linux_x86_64/{{ item.deb }}"  # directory containing .deb-packages
+        state: present
+      loop: "{{ list_of_packages|flatten(levels=1) }}"
+      become: true
+
     - name: Link libraries still not found
       ansible.builtin.file:
         src: "{{ item.src }}"
@@ -208,21 +227,6 @@
             src: "{{ install_dir }}/bin/lib64/libQtitanRibbon.so.5",
             dest: "/usr/lib/libQtitanRibbon.so.5"
           }
-
-    - name: Convert .rpm-packages to .deb-packages
-      command:
-        chdir: "/vagrant/linux_x86_64/"  # directory containing .rpm-packages
-        cmd: "alien --scripts --keep-version ./{{ item.rpm }}"
-        creates: "./{{ item.deb }}"
-      loop: "{{ list_of_packages|flatten(levels=1) }}"
-      become: true
-
-    - name: Install Dymola and libraries
-      apt:
-        deb: "/vagrant/linux_x86_64/{{ item.deb }}"  # directory containing .deb-packages
-        state: present
-      loop: "{{ list_of_packages|flatten(levels=1) }}"
-      become: true
 
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
     # Bonus: Make Dymola accessible from the Applications-menu in GNOME
