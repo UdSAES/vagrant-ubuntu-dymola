@@ -34,13 +34,13 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
 
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "ubuntu1804_dymola2021"
+    vb.name = "ubuntu1804_dymola2021x"
 
     # Display the VirtualBox GUI when booting the machine
     vb.gui = true
 
     # Customize the amount of memory on the VM:
-    vb.memory = "4096"
+    vb.memory = "2048"
 
     vb.cpus = 2
 
