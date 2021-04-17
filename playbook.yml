@@ -45,6 +45,13 @@
       become: true
 
   tasks:
+    # Determine which tasks to run
+    # https://github.com/dotless-de/vagrant-vbguest/issues/351#issuecomment-545391139
+    - name: Determine which tasks to run
+      ansible.builtin.set_fact:
+        is_first_run: "{{ lookup('env', 'PROVISION_FIRST_RUN') | default('false') }}"
+      delegate_to: localhost
+
     # Update package cache
     - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
       apt:
@@ -122,6 +129,7 @@
           - "Templates"
           - "Videos"
       when:
+        - not is_first_run
         - disable_gnome_default_folders
 
     # Install support for exactly one additional language
@@ -142,6 +150,7 @@
           state: present
         become: true
       when:
+        - not is_first_run
         - additional_language is defined
 
     # Install Dymola ###################################################################
@@ -201,6 +210,7 @@
           - libqt5xml5
         state: present
       become: true
+      when: not is_first_run
 
     - name: Install dependencies of Dymola, 2/2
       apt:
@@ -216,6 +226,7 @@
         # libicui18n.so.52.1: cannot open shared object file: No such file or directory
         # -> https://launchpad.net/ubuntu/+source/icu
         - https://launchpad.net/ubuntu/+archive/primary/+files/libicu52_52.1-3_amd64.deb
+      when: not is_first_run
 
     - name: Convert .rpm-packages to .deb-packages
       command:
@@ -224,6 +235,7 @@
         creates: "./{{ item.deb }}"
       loop: "{{ list_of_packages|flatten(levels=1) }}"
       become: true
+      when: not is_first_run
 
     - name: Install Dymola and libraries
       apt:
@@ -231,6 +243,7 @@
         state: present
       loop: "{{ list_of_packages|flatten(levels=1) }}"
       become: true
+      when: not is_first_run
 
     - name: Link libraries still not found
       ansible.builtin.file:
@@ -251,6 +264,7 @@
             src: "{{ install_dir }}/bin/lib64/libQtitanRibbon.so.5",
             dest: "/usr/lib/libQtitanRibbon.so.5"
           }
+      when: not is_first_run
 
     # Voilà! It should now be possible to start Dymola 2021 as `dymola` from the terminal
     # Bonus: Make Dymola accessible from the Applications-menu in GNOME
@@ -264,3 +278,4 @@
       vars:
         application_name: "{{ version.name }}"
         install_directory: "{{ install_dir }}"
+      when: not is_first_run

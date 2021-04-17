@@ -20,14 +20,22 @@ Vagrant.configure("2") do |config|
   # `vagrant box outdated`. This is not recommended.
   # config.vm.box_check_update = false
 
+  if ENV['PROVISION_FIRST_RUN'] == 'true'
+    config.vbguest.auto_update = false
+  else
+    config.vbguest.auto_update = true
+  end
+
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.synced_folder "/home/moritz/virtual_machines/ubuntu1804_dymola2021/WorkingDirectory", "/home/vagrant/WorkingDirectory"
-  config.vm.synced_folder "/home/moritz/work/vorlesungen/component_based_systems/CbS", "/home/vagrant/CbS"
-  config.vm.synced_folder "/home/moritz/work/projekte/designetz/usecases/pv_prognose/pv-systems", "/home/vagrant/PVSystems"
+  if ENV['PROVISION_MOUNT_VAGRANT'] == 'true'
+    config.vm.synced_folder ".", "/vagrant", disabled: false
+  else
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder "./xfer", "/home/vagrant/xfer"
+  end
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
