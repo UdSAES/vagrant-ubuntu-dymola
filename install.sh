@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+# SPDX-License-Identifier: Unlicense
 
 # Unset whatever was configured before
 # https://stackoverflow.com/a/52128244

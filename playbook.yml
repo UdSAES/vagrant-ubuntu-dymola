@@ -1,5 +1,8 @@
 # Install Dymola on Ubuntu 18.04 LTS, starting from scratch at
 # https://app.vagrantup.com/hashicorp/boxes/bionic64 using VirtualBox
+#
+# SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+# SPDX-License-Identifier: Unlicense
 
 ---
 - hosts: all  # 'all' works with Vagrant but not in general

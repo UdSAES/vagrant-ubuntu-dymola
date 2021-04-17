@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+# SPDX-License-Identifier: CC0-1.0
+
 # Ignore specific files/folders
 .Trash-1000/
 .vagrant/

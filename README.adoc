@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+// SPDX-License-Identifier: CC0-1.0
+
 = README
 
 Vagrantfile and playbook for installation of Dymola on Ubuntu from scratch using Vagrant
