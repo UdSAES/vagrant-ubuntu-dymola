@@ -28,7 +28,7 @@ Vagrant reads the desired configuration of a VM including all software packages 
 === Installation Script
 [source,sh]
 ----
-include::install.sh[]
+./install.sh # read the script for details
 ----
 
 The script assumes that the host OS is a Linux-variant. Running on Windows is not supported, but in this case you can just install Dymola natively anyway.
