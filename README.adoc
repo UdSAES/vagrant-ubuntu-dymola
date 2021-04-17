@@ -2,11 +2,39 @@
 
 Vagrantfile and playbook for installation of Dymola on Ubuntu from scratch using Vagrant
 
+https://www.3ds.com/products-services/catia/products/dymola/[Dymola] is a state-of-the-art commercial simulation environment for the modelling language https://modelica.org/modelicalanguage[Modelica]. It is available for Windows and Linux operating systems from Dassault Systèmes.
+
+Unfortunately, only a few Linux distributions are supported and installation on Linux rarely works out of the box.footnote:[This is my personal observation.]
+
+This repository provides a machine-readable documentation of all steps necessary to create a virtual machine running Dymola for Linux using https://www.vagrantup.com/[Vagrant] and https://www.virtualbox.org/[VirtualBox].
+
+
 == Installation
-...
+Vagrant reads the desired configuration of a VM including all software packages to be installed from the files in this repository and ensures that the configuration is realized. In order for this to work, you need to...
+
+* Clone this repository
+* Install https://www.virtualbox.org/[VirtualBox]
+* https://www.vagrantup.com/docs/installation[Install Vagrant]
+* Install the https://github.com/dotless-de/vagrant-vbguest[`vagrant-vbguest`-plugin]
+* Copy the directory `linux_x86_64/` from the Dymola installation files into the folder in which you cloned the repository
 
 == Usage
-...
+
+*`TL;DR:` just execute `./install.sh` and wait for completion*. Note that you will have to log into the VM once during installation when prompted.
+
+=== Installation Script
+[source,sh]
+----
+include::install.sh[]
+----
+
+The script assumes that the host OS is a Linux-variant. Running on Windows is not supported, but in this case you can just install Dymola natively anyway.
+
+=== Configuration
+Configuration is not required, but possible. By default, a VM with 2 CPUs and 2048 MiB RAM is created. The default directories created by GNOME in `/home/vagrant/` are removed and Dymola and the `dassaultsystemes`-library are installed.
+
+* For configuring the VM (RAM, CPUs, ...) edit the `Vagrantfile`.
+* For all other settings, edit the `vars`-section at the top of `playbook.yaml`.
 
 == License
 ...

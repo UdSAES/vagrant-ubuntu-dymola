@@ -25,7 +25,7 @@ else
   exit 1
 fi
 
-# Copy the directory `linux_x86_64` from the Dymola installation files to this directory
+# Verify that directory `./linux_x86_64` exists
 DIRECTORY_INSTALL=./linux_x86_64
 if [ ! -d $DIRECTORY_INSTALL ]; then
   echo "Copy `linux_x86_64/` from the Dymola installation files to `./linux_x86_64`! Aborting."
