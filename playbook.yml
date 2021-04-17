@@ -124,6 +124,26 @@
       when:
         - disable_gnome_default_folders
 
+    # Install support for exactly one additional language
+    # https://askubuntu.com/a/476719
+    - name: Install support for exactly one additional language
+      block:
+      - name: Identify packages to be installed for supporting locale
+        ansible.builtin.command: "check-language-support -l {{ additional_language }}"
+        register: language_pkgs
+
+      - name: Assemble list of packages to be installed
+        ansible.builtin.set_fact:
+          language_pkgs_list: "{{ language_pkgs.stdout.split(' ') }}"
+
+      - name: Install packages
+        apt:
+          name: "{{ language_pkgs_list }}"
+          state: present
+        become: true
+      when:
+        - additional_language is defined
+
     # Install Dymola ###################################################################
     # -- list all dependencies: `ldd /full/path/to/executable`
     # -- identify specific problem: `QT_DEBUG_PLUGINS=1 /full/path/to/executable`
