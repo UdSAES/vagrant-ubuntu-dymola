@@ -7,10 +7,9 @@ Vagrantfile and playbook for installation of Dymola on Ubuntu from scratch using
 
 https://www.3ds.com/products-services/catia/products/dymola/[Dymola] is a state-of-the-art commercial simulation environment for the modelling language https://modelica.org/modelicalanguage[Modelica]. It is available for Windows and Linux operating systems from Dassault Systèmes.
 
-Unfortunately, only a few Linux distributions are supported and installation on Linux rarely works out of the box.footnote:[This is my personal observation.]
+Unfortunately, only a few Linux distributions are supported and installation on Linux rarely works out of the box.footnote:[This is just my personal observation. The sample size is insufficient for drawing reliable conclusions.]
 
 This repository provides a machine-readable documentation of all steps necessary to create a virtual machine running Dymola for Linux using https://www.vagrantup.com/[Vagrant] and https://www.virtualbox.org/[VirtualBox].
-
 
 == Installation
 Vagrant reads the desired configuration of a VM including all software packages to be installed from the files in this repository and ensures that the configuration is realized. In order for this to work, you need to...
@@ -18,11 +17,11 @@ Vagrant reads the desired configuration of a VM including all software packages 
 * Clone this repository
 * Install https://www.virtualbox.org/[VirtualBox]
 * https://www.vagrantup.com/docs/installation[Install Vagrant]
+* https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html[Install Ansible]
 * Install the https://github.com/dotless-de/vagrant-vbguest[`vagrant-vbguest`-plugin]
 * Copy the directory `linux_x86_64/` from the Dymola installation files into the folder in which you cloned the repository
 
 == Usage
-
 *`TL;DR:` just execute `./install.sh` and wait for completion*. Note that you will have to log into the VM once during installation when prompted.
 
 === Installation Script
