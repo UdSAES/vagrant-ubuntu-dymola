@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
 # SPDX-License-Identifier: Unlicense
