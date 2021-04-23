@@ -15,10 +15,10 @@ This repository provides a machine-readable documentation of all steps necessary
 Vagrant reads the desired configuration of a VM including all software packages to be installed from the files in this repository and ensures that the configuration is realized. In order for this to work, you need to...
 
 * Clone this repository
-* Install https://www.virtualbox.org/[VirtualBox]
-* https://www.vagrantup.com/docs/installation[Install Vagrant]
-* https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html[Install Ansible]
-* Install the https://github.com/dotless-de/vagrant-vbguest[`vagrant-vbguest`-plugin]
+* Install https://www.virtualbox.org/[VirtualBox] (version 6.1.18 works for me)
+* https://www.vagrantup.com/docs/installation[Install Vagrant] (version 2.2.15 works for me)
+* https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html[Install Ansible] (version 2.9.14 works for me)
+* Install the https://github.com/dotless-de/vagrant-vbguest[`vagrant-vbguest`-plugin] (version 0.29.0 works for me)
 * Copy the directory `linux_x86_64/` from the Dymola installation files into the folder in which you cloned the repository
 
 == Usage
